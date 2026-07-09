@@ -23,9 +23,9 @@
 <!-- markdownlint-disable MD033 -->
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs/architecture-light.png">
-    <img alt="Схема взаимодействий" src="docs/architecture-light.png" width="800">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/Date_Wishlist_hub_dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/Date_Wishlist_hub_light.png">
+    <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light.png" width="800">
   </picture>
 </p>
 <!-- markdownlint-enable MD033 -->
