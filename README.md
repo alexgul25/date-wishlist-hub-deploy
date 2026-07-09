@@ -2,7 +2,7 @@
 
 Центральный репозиторий проекта **Date Wishlist Hub**
 
-## :puzzle_piece: Используемые микросервисы
+## :jigsaw: Используемые микросервисы
 
 - :point_right: [Gateway Service](https://github.com/alexgul25/gateway-svc) - единая точка входа, через которую клиенты взаимодействуют со всеми внутренними сервисами
 
