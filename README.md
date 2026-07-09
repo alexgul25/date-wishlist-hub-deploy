@@ -16,16 +16,16 @@
 
 **Data Wishlist Hub** - сервис, где каждый пользователь ведёт свой вишлист мест, которые он хотел бы посетить. Пользователи могут просматривать вишлисты, чтобы выбрать идею для совместной прогулки. Есть возможность подписки на пользователя, она позволяет получать уведомления на почту о появлении новых мест в вишлисте интересующего пользователя (на данном этапе письма на почту симулируются с помощью логирования).
 
-## Схема взаимодействия сервисов
-
 ## Архитектура проекта
 
 <!-- markdownlint-disable MD033 -->
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/Date_Wishlist_hub_dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs/Date_Wishlist_hub_light.png">
-    <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light.png" width="800">
-  </picture>
+  <a href="docs/Date_Wishlist_hub_light.png" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/Date_Wishlist_hub_dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="docs/Date_Wishlist_hub_light.png">
+      <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light.png" width="600">
+    </picture>
+  </a>
 </p>
 <!-- markdownlint-enable MD033 -->
