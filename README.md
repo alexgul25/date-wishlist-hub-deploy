@@ -20,12 +20,10 @@
 
 <!-- markdownlint-disable MD033 -->
 <p align="center">
-  <a href="docs/Date_Wishlist_hub_light.png" target="_blank">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/Date_Wishlist_hub_dark.png">
-      <source media="(prefers-color-scheme: light)" srcset="docs/Date_Wishlist_hub_light.png">
-      <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light.png" width="600">
-    </picture>
-  </a>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/Date_Wishlist_hub_dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/Date_Wishlist_hub_light.png">
+    <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light.png" width="100%">
+  </picture>
 </p>
 <!-- markdownlint-enable MD033 -->
