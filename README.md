@@ -23,7 +23,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/Date_Wishlist_hub_dark.png">
     <source media="(prefers-color-scheme: light)" srcset="docs/Date_Wishlist_hub_light.png">
-    <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light.png" width="600">
+    <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light.png" width="700">
   </picture>
 </p>
 <!-- markdownlint-enable MD033 -->
