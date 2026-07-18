@@ -1,22 +1,22 @@
-# Date Wishlist Hub Deploy
+# :whale: Date Wishlist Hub Deploy
 
-Центральный репозиторий проекта **Date Wishlist Hub**
-
-## :jigsaw: Используемые микросервисы
-
-- :point_right: [Gateway Service](https://github.com/alexgul25/gateway-svc) - единая точка входа, через которую клиенты взаимодействуют со всеми внутренними сервисами
-
-- :point_right: [User Service](https://github.com/alexgul25/user-svc) - работа с данными о пользователях и подписках
-
-- :point_right: [Place Service](https://github.com/alexgul25/place-svc) - работа с данными о местах, добавленных пользователями
-
-- Notify Service (ещё создаётся)
-
-- :point_right: [Protos](https://github.com/alexgul25/protos) - общие для проекта `.proto` контракты
+Центральный репозиторий проекта **Date Wishlist Hub** ([общая канбан-доска](https://github.com/users/alexgul25/projects/2)).
 
 ## :bulb: Идея проекта
 
 **Data Wishlist Hub** - сервис, где каждый пользователь ведёт свой вишлист мест, которые он хотел бы посетить. Пользователи могут просматривать вишлисты, чтобы выбрать идею для совместной прогулки. Есть возможность подписки на пользователя, что позволяет получать уведомления на почту о появлении новых мест в вишлисте интересующего пользователя (на данном этапе письма на почту симулируются с помощью логирования).
+
+## :jigsaw: Используемые микросервисы
+
+- :globe_with_meridians: **[Gateway Service](https://github.com/alexgul25/gateway-svc)** - единая точка входа, через которую клиенты взаимодействуют со всеми внутренними сервисами.
+
+- :round_pushpin: **[Place Service](https://github.com/alexgul25/place-svc)** - работа с данными о местах, добавленных пользователями.
+
+- :busts_in_silhouette: **[User Service](https://github.com/alexgul25/user-svc)** - работа с данными о пользователях и подписках.
+
+- :bell: **[Notify Service](https://github.com/alexgul25/notify-svc)** - асинхронная отправка уведомлений.
+
+- :scroll: **[Protos](https://github.com/alexgul25/protos)** - общие `.proto` контракты.
 
 ## :building_construction: Архитектура проекта
 
@@ -32,26 +32,14 @@
 
 ## :world_map: План развития проекта
 
-### MVP
+С задачами проекта, находящимися в работе прямо сейчас, можно ознакомиться на [канбан-доске](https://github.com/users/alexgul25/projects/2).
 
-- [x] User Service – регистрация, аутентификация, подписки
+***Общие идеи для развития проекта в будущем.***
 
-- [x] Place Service – добавление мест и просмотр их актуального списка
+- Unit-тесты для бизнес-логики сервисов.
 
-- [x] Gateway Service – единая точка входа, gRPC-прокси
+- Интеграционные тесты с testcontainers.
 
-- [ ] Notify Service – логирование уведомлений
+- Сбор метрик (Prometheus + Grafana).
 
-### Дальнейшие шаги
-
-- [ ] Подробный README для каждого сервиса
-
-- [ ] Unit-тесты для бизнес-логики сервисов
-
-- [ ] Интеграционные тесты с testcontainers
-
-- [ ] Docker-образы для всех сервисов
-
-- [ ] Docker Compose для локального запуска всего кластера
-
-- [ ] Сбор метрик (Prometheus + Grafana)
+- Реализация пользовательского интерфейса и запуск на сервере.
