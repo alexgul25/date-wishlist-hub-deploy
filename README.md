@@ -1,6 +1,6 @@
 # :whale: Date Wishlist Hub Deploy
 
-Центральный репозиторий проекта **Date Wishlist Hub**([общая канбан-доска](https://github.com/users/alexgul25/projects/2)).
+Центральный репозиторий проекта **Date Wishlist Hub** ([общая канбан-доска](https://github.com/users/alexgul25/projects/2)).
 
 ## :bulb: Идея проекта
 
@@ -16,7 +16,7 @@
 
 - :bell: **[Notify Service](https://github.com/alexgul25/notify-svc)** - асинхронная отправка уведомлений.
 
-- :point_right: **[Protos](https://github.com/alexgul25/protos)** - общие `.proto` контракты.
+- :scroll: **[Protos](https://github.com/alexgul25/protos)** - общие `.proto` контракты.
 
 ## :building_construction: Архитектура проекта
 
