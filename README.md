@@ -1,6 +1,10 @@
 # :whale: Date Wishlist Hub Deploy
 
-Центральный репозиторий проекта **Date Wishlist Hub** ([общая канбан-доска](https://github.com/users/alexgul25/projects/2)).
+Центральный репозиторий проекта **Date Wishlist Hub**.
+
+Ссылка на канбан-доску проекта: **[Date Wishlist Hub - Development](https://github.com/users/alexgul25/projects/2)**
+
+*Общий стек технологий проекта:* `Go` `PostgreSQL` `Redis` `Kafka` `HTTP` `gRPC` `Protobuf`
 
 ## :bulb: Идея проекта
 
