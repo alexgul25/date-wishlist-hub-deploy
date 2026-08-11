@@ -122,7 +122,7 @@ git clone git@github.com:alexgul25/notify-svc.git
 <details>
 <summary>Примечание</summary>
 
-Рекомендуется создать 3 разных пользователя и аналогично 3 БД, но если совсем лень, всё будет работать (:question:) и для одного экземпляра :grin:.
+Рекомендуется создать 3 разных пользователя и аналогично 3 БД, но если совсем лень, всё будет работать (❓) и для одного экземпляра 😁.
 
 </details>
 <!-- markdownlint-enable MD033 -->
@@ -177,12 +177,12 @@ psql -h localhost -U <имя пользователя> -d <имя БД> -c "SELE
 Переменные `DB_USER`, `DB_PASSWORD` и `DB_NAME`:
 
 - используются в **Place Service**, **User Service** и **Notify Service**;
-- заполняются значениями из шага [3.1.](#31-postgresql).
+- заполняются значениями из шага [3.1.](#31-postgresql)
 
 Переменная `KAFKA_PRODUCER_BROKERS`:
 
 - используется в **Place Service**;
-- заполняется значениями из шага [3.2.](#32-kafka).
+- заполняется значениями из шага [3.2.](#32-kafka)
 
 Переменная `KAFKA_CONSUMER_BROKERS`:
 
