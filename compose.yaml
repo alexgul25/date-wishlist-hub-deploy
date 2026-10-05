@@ -1,0 +1,248 @@
+# Запуск всей системы Date Wishlist Hub одной командой:
+#   docker compose up --build
+#
+# Репозитории сервисов должны лежать в одной папке с этим репозиторием
+# (см. README). Секреты и настройки берутся из файла .env (см. .env.example).
+
+name: date-wishlist-hub
+
+# ------------------------------------------------------------------------------
+# Общие фрагменты (YAML-якоря), чтобы не повторять одно и то же в каждом сервисе
+# ------------------------------------------------------------------------------
+
+# Аргументы сборки, общие для всех сервисов.
+x-build-args: &build-args
+  GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
+
+# Параметры проверок состояния сервисов проекта.
+x-healthcheck-timings: &healthcheck-timings
+  interval: 5s
+  timeout: 3s
+  retries: 10
+  start_period: 5s
+
+services:
+  # ============================================================================
+  # Инфраструктура
+  # ============================================================================
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}
+      # Пароли пользователей сервисов: их читает скрипт инициализации.
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:?задайте USER_DB_PASSWORD в .env}
+      PLACE_DB_PASSWORD: ${PLACE_DB_PASSWORD:?задайте PLACE_DB_PASSWORD в .env}
+      NOTIFY_DB_PASSWORD: ${NOTIFY_DB_PASSWORD:?задайте NOTIFY_DB_PASSWORD в .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # Скрипт выполняется один раз, при первом запуске с пустым томом:
+      # создаёт пользователя и базу данных для каждого сервиса.
+      - ./infra/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+    healthcheck:
+      # -h 127.0.0.1: во время инициализации PostgreSQL слушает только
+      # unix-сокет, поэтому проверка по TCP не сработает раньше времени.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  kafka:
+    image: apache/kafka:4.0.0
+    environment:
+      # Один узел в режиме KRaft: он и брокер, и контроллер.
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      # Адрес, который брокер сообщает клиентам: имя сервиса в сети Compose.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      # Настройки для кластера из одного брокера.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Топики создаются явно сервисом kafka-init, а не при первом обращении.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+
+  # Одноразовый сервис: создаёт топики и завершается.
+  kafka-init:
+    image: apache/kafka:4.0.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/opt/kafka/bin/kafka-topics.sh"]
+    command:
+      - --bootstrap-server=kafka:9092
+      - --create
+      - --if-not-exists
+      - --topic=place.created
+      - --partitions=1
+      - --replication-factor=1
+
+  # ============================================================================
+  # User Service
+  # ============================================================================
+
+  # Одноразовый сервис: применяет миграции БД и завершается.
+  user-svc-migrator:
+    # Тот же образ, что у user-svc: его собирает сервис user-svc.
+    image: date-wishlist-hub/user-svc
+    pull_policy: never
+    entrypoint: ["/app/migrator"]
+    environment: &user-svc-env
+      ENV: ${ENV:-local}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: user_svc
+      DB_USER: user_svc
+      DB_PASSWORD: ${USER_DB_PASSWORD}
+      GRPCSERVER_PORT: 50051
+      JWT_SECRET: ${JWT_SECRET:?задайте JWT_SECRET в .env}
+      SERVICES_WITH_EMAIL_HIDDEN: gateway-svc
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  user-svc:
+    image: date-wishlist-hub/user-svc
+    build:
+      context: ../user-svc
+      args: *build-args
+    environment: *user-svc-env
+    depends_on:
+      user-svc-migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:50051"]
+      <<: *healthcheck-timings
+    stop_grace_period: 15s
+
+  # ============================================================================
+  # Place Service
+  # ============================================================================
+
+  place-svc-migrator:
+    # Тот же образ, что у place-svc: его собирает сервис place-svc.
+    image: date-wishlist-hub/place-svc
+    pull_policy: never
+    entrypoint: ["/app/migrator"]
+    environment: &place-svc-env
+      ENV: ${ENV:-local}
+      SERVICE_NAME: place-svc
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: place_svc
+      DB_USER: place_svc
+      DB_PASSWORD: ${PLACE_DB_PASSWORD}
+      GRPCSERVER_PORT: 50052
+      KAFKA_PRODUCER_BROKERS: kafka:9092
+      REDIS_CACHE_ADDR: redis:6379
+      REDIS_CACHE_TTL: 45s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  place-svc:
+    image: date-wishlist-hub/place-svc
+    build:
+      context: ../place-svc
+      args: *build-args
+    environment: *place-svc-env
+    depends_on:
+      place-svc-migrator:
+        condition: service_completed_successfully
+      kafka-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=:50052"]
+      <<: *healthcheck-timings
+    stop_grace_period: 15s
+
+  # ============================================================================
+  # Notify Service
+  # ============================================================================
+
+  notify-svc-migrator:
+    # Тот же образ, что у notify-svc: его собирает сервис notify-svc.
+    image: date-wishlist-hub/notify-svc
+    pull_policy: never
+    entrypoint: ["/app/migrator"]
+    environment: &notify-svc-env
+      ENV: ${ENV:-local}
+      SERVICE_NAME: notify-svc
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: notify_svc
+      DB_USER: notify_svc
+      DB_PASSWORD: ${NOTIFY_DB_PASSWORD}
+      KAFKA_CONSUMER_BROKERS: kafka:9092
+      USER_SERVICE_ADDR: user-svc:50051
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notify-svc:
+    image: date-wishlist-hub/notify-svc
+    build:
+      context: ../notify-svc
+      args: *build-args
+    environment: *notify-svc-env
+    depends_on:
+      notify-svc-migrator:
+        condition: service_completed_successfully
+      # Сервис при старте подписывается на топик, поэтому топик должен существовать.
+      kafka-init:
+        condition: service_completed_successfully
+      user-svc:
+        condition: service_healthy
+    stop_grace_period: 15s
+
+  # ============================================================================
+  # Gateway Service — единственный сервис, доступный снаружи
+  # ============================================================================
+
+  gateway-svc:
+    image: date-wishlist-hub/gateway-svc
+    build:
+      context: ../gateway-svc
+      args: *build-args
+    environment:
+      ENV: ${ENV:-local}
+      SERVICE_NAME: gateway-svc
+      SERVER_ADDR: ":8082"
+      JWT_SECRET: ${JWT_SECRET}
+      USER_SERVICE_ADDR: user-svc:50051
+      PLACE_SERVICE_ADDR: place-svc:50052
+    ports:
+      - "${GATEWAY_PORT:-8082}:8082"
+    depends_on:
+      user-svc:
+        condition: service_healthy
+      place-svc:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/app/healthcheck"]
+      <<: *healthcheck-timings
+    stop_grace_period: 15s
+
+volumes:
+  postgres-data:
