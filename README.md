@@ -34,8 +34,8 @@
 
 Систему можно запустить двумя способами:
 
-- **[через Docker Compose](#2-запуск-через-docker-compose)** - одной командой, вся инфраструктура поднимается в контейнерах (рекомендуемый способ);
-- **[без Docker](#3-запуск-без-docker)** - сервисы собираются и запускаются локально, инфраструктура настраивается вручную.
+- **[через Docker Compose](#2-запуск-через-docker-compose)** - одной командой, вся система вместе с сервисами поднимается в контейнерах (рекомендуемый способ);
+- **[из исходников](#3-запуск-сервисов-из-исходников)** - сервисы собираются и запускаются локально, а PostgreSQL, Redis и Kafka поднимаются в контейнерах через `compose.dev.yaml` (способ для разработки и отладки).
 
 ### 1. Клонирование нужных репозиториев
 
@@ -155,7 +155,7 @@ openssl rand -base64 32
 </details>
 <!-- markdownlint-enable MD033 -->
 
-### 3. Запуск без Docker
+### 3. Запуск сервисов из исходников
 
 #### 3.1. Подготовка окружения
 
@@ -163,59 +163,54 @@ openssl rand -base64 32
 
 - Go (версия 1.26.3+);
 - утилита `goreman`;
-- сервер PostgreSQL (версия 13+) и утилита `psql`;
-- сервер Redis (версия 7+);
-- сервер Kafka (версия 4.0+);
+- Docker Engine с плагином `compose`;
 - компилятор Protocol Buffers (`protoc`);
 - утилита `curl`;
 - утилита `jq`;
 - утилита `make`.
 
-#### 3.2. PostgreSQL
+#### 3.2. Инфраструктура в Docker Compose
 
-Запустите сервер PostgreSQL, затем создайте пользователей и базы данных для **Place Service**, **User Service** и **Notify Service**.
+PostgreSQL, Redis и Kafka запускаются в контейнерах по **[compose.dev.yaml](./compose.dev.yaml)**. Все команды выполняются из корневой папки этого репозитория.
+
+1. Создайте файл `.env`, как описано в разделе [2.2.](#22-файл-конфигурации), или используйте уже созданный: это тот же файл. Для `compose.dev.yaml` достаточно задать пароли PostgreSQL: `POSTGRES_PASSWORD`, `USER_DB_PASSWORD`, `PLACE_DB_PASSWORD` и `NOTIFY_DB_PASSWORD`.
+2. `docker compose -f compose.dev.yaml up -d` - запустите инфраструктуру в фоне.
+3. `docker compose -f compose.dev.yaml ps -a` - убедитесь, что `kafka-init` завершился с кодом 0, а у `postgres`, `redis` и `kafka` статус `healthy`.
+4. `docker compose -f compose.dev.yaml down` - остановите инфраструктуру, когда закончите работу. Данные PostgreSQL сохранятся до следующего запуска. Чтобы остановить инфраструктуру и удалить все данные, выполните `docker compose -f compose.dev.yaml down -v`.
+
+Порты публикуются только на `127.0.0.1`, поэтому из сети к ним не подключиться.
+
+| Сервис     | Адрес            |
+| ---------- | ---------------- |
+| PostgreSQL | `127.0.0.1:5432` |
+| Redis      | `127.0.0.1:6379` |
+| Kafka      | `127.0.0.1:9092` |
 
 <!-- markdownlint-disable MD033 -->
 <details>
-<summary>Примечание</summary>
+<summary>Что запускается</summary>
 
-Рекомендуется создать 3 разных пользователя и аналогично 3 БД, но если совсем лень, всё будет работать (❓) и для одного экземпляра 😁.
+- `postgres` - при первом запуске скрипт [init-databases.sh](./infra/postgres/init-databases.sh) создаёт пользователей и базы данных `user_svc`, `place_svc` и `notify_svc` с паролями из `.env`.
+- `redis` - без пользователя и пароля.
+- `kafka` - брокер в режиме KRaft. Одноразовый сервис `kafka-init` создаёт топик `place.created` и завершается.
 
 </details>
 <!-- markdownlint-enable MD033 -->
 
-```bash
-sudo -u postgres psql -c "CREATE USER <имя пользователя> WITH PASSWORD '<пароль>';"
-```
+<!-- markdownlint-disable MD033 -->
+<details>
+<summary>Подсказки</summary>
 
-```bash
-sudo -u postgres psql -c "CREATE DATABASE <имя БД> OWNER <имя пользователя>;"
-```
+- Пользователи и базы данных создаются один раз, при первом запуске. Если вы изменили пароли БД в `.env` после первого запуска, удалите данные и запустите инфраструктуру заново: `docker compose -f compose.dev.yaml down -v`, затем `docker compose -f compose.dev.yaml up -d`.
+- Redis и Kafka данные между запусками не хранят: после `down` кеш и сообщения пропадают, а топик `place.created` заново создаст `kafka-init`.
+- Данные этой инфраструктуры хранятся отдельно от системы из раздела [2.](#2-запуск-через-docker-compose)
+- Если при запуске порт оказался занят, скорее всего, на нём работает локально установленный сервер PostgreSQL, Redis или Kafka. Остановите его.
+- После перезапуска компьютера или WSL контейнеры сами не запускаются: снова выполните `docker compose -f compose.dev.yaml up -d`.
 
-Проверьте доступ.
+</details>
+<!-- markdownlint-enable MD033 -->
 
-```bash
-psql -h localhost -U <имя пользователя> -d <имя БД> -c "SELECT 1;"
-```
-
-Если всё работает корректно, вы увидите следующий вывод:
-
-```bash
- ?column? 
-----------
-        1
-(1 row)
-```
-
-#### 3.3. Kafka
-
-Запустите сервер Kafka. Если у вас отключено автоматическое создание топиков, создайте их самостоятельно (названия топиков см. в **[topics.go](https://github.com/alexgul25/place-svc/blob/main/internal/outbox/topics.go)**).
-
-#### 3.4. Redis
-
-Запустите сервер Redis. Затем можно создать пользователя и пароль для **Place Service**, но при локальной работе это необязательно :grin:.
-
-#### 3.5. Файлы конфигураций сервисов
+#### 3.3. Файлы конфигураций сервисов
 
 ***ВАЖНО!*** Создайте в корневой папке каждого из четырёх сервисов файл `.env` для переменных окружения и заполните их в следующем порядке.
 
@@ -228,30 +223,32 @@ psql -h localhost -U <имя пользователя> -d <имя БД> -c "SELE
 <details>
 <summary>Подсказки</summary>
 
-Переменные `DB_USER`, `DB_PASSWORD` и `DB_NAME`:
+Переменные `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` и `DB_NAME`:
 
 - используются в **Place Service**, **User Service** и **Notify Service**;
-- заполняются значениями из шага [3.2.](#32-postgresql)
+- заполняются значениями из шага [3.2.](#32-инфраструктура-в-docker-compose): `DB_HOST` = `localhost`, `DB_PORT` = `5432`, `DB_USER` и `DB_NAME` = `user_svc`, `place_svc` или `notify_svc`, `DB_PASSWORD` = значение `USER_DB_PASSWORD`, `PLACE_DB_PASSWORD` или `NOTIFY_DB_PASSWORD` из `.env` этого репозитория.
 
 Переменная `KAFKA_PRODUCER_BROKERS`:
 
 - используется в **Place Service**;
-- заполняется значениями из шага [3.3.](#33-kafka)
+- `KAFKA_PRODUCER_BROKERS` = `localhost:9092`.
 
 Переменная `KAFKA_CONSUMER_BROKERS`:
 
 - используется в **Notify Service**;
-- заполняется значениями из шага [3.3.](#33-kafka)
+- `KAFKA_CONSUMER_BROKERS` = `localhost:9092`.
 
 Переменные `REDIS_CACHE_ADDR`, `REDIS_CACHE_PASSWORD`, `REDIS_CACHE_USERNAME`:
 
-- используется в **Place Service**;
-- заполняется значениями из шага [3.4.](#34-redis) Если не создали пользователя и пароль, оставьте соответствующие переменные пустыми.
+- используются в **Place Service**;
+- `REDIS_CACHE_ADDR` = `localhost:6379`, `REDIS_CACHE_USERNAME` и `REDIS_CACHE_PASSWORD` оставьте пустыми: Redis из шага [3.2.](#32-инфраструктура-в-docker-compose) работает без пользователя и пароля.
 
 </details>
 <!-- markdownlint-enable MD033 -->
 
-#### 3.6. Запуск и работа
+#### 3.4. Запуск и работа
+
+Перед запуском убедитесь, что инфраструктура из шага [3.2.](#32-инфраструктура-в-docker-compose) работает: иначе миграции в `make run` завершатся ошибкой `connection refused`.
 
 Для удобства локальной работы в корне репозитория определёны **[Makefile](./Makefile)** и **[Procfile](./Procfile)** (нужен для запуска через `goreman`).
 
