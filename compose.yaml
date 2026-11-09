@@ -1,10 +1,10 @@
-# Запуск всей системы Date Wishlist Hub одной командой:
+# Запуск всей системы НамТуда одной командой:
 #   docker compose up --build
 #
 # Репозитории сервисов должны лежать в одной папке с этим репозиторием
 # (см. README). Секреты и настройки берутся из файла .env (см. .env.example).
 
-name: date-wishlist-hub
+name: namtuda
 
 # ------------------------------------------------------------------------------
 # Общие фрагменты (YAML-якоря), чтобы не повторять одно и то же в каждом сервисе
@@ -103,7 +103,7 @@ services:
   # Одноразовый сервис: применяет миграции БД и завершается.
   user-svc-migrator:
     # Тот же образ, что у user-svc: его собирает сервис user-svc.
-    image: date-wishlist-hub/user-svc
+    image: namtuda/user-svc
     pull_policy: never
     entrypoint: ["/app/migrator"]
     environment: &user-svc-env
@@ -121,7 +121,7 @@ services:
         condition: service_healthy
 
   user-svc:
-    image: date-wishlist-hub/user-svc
+    image: namtuda/user-svc
     build:
       context: ../user-svc
       args: *build-args
@@ -140,7 +140,7 @@ services:
 
   place-svc-migrator:
     # Тот же образ, что у place-svc: его собирает сервис place-svc.
-    image: date-wishlist-hub/place-svc
+    image: namtuda/place-svc
     pull_policy: never
     entrypoint: ["/app/migrator"]
     environment: &place-svc-env
@@ -160,7 +160,7 @@ services:
         condition: service_healthy
 
   place-svc:
-    image: date-wishlist-hub/place-svc
+    image: namtuda/place-svc
     build:
       context: ../place-svc
       args: *build-args
@@ -183,7 +183,7 @@ services:
 
   notify-svc-migrator:
     # Тот же образ, что у notify-svc: его собирает сервис notify-svc.
-    image: date-wishlist-hub/notify-svc
+    image: namtuda/notify-svc
     pull_policy: never
     entrypoint: ["/app/migrator"]
     environment: &notify-svc-env
@@ -201,7 +201,7 @@ services:
         condition: service_healthy
 
   notify-svc:
-    image: date-wishlist-hub/notify-svc
+    image: namtuda/notify-svc
     build:
       context: ../notify-svc
       args: *build-args
@@ -221,7 +221,7 @@ services:
   # ============================================================================
 
   gateway-svc:
-    image: date-wishlist-hub/gateway-svc
+    image: namtuda/gateway-svc
     build:
       context: ../gateway-svc
       args: *build-args
