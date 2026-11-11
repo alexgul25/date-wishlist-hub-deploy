@@ -1,14 +1,14 @@
-# :whale: Date Wishlist Hub Deploy
+# :whale: НамТуда
 
-Центральный репозиторий проекта **Date Wishlist Hub**.
+Центральный репозиторий проекта **НамТуда**.
 
-Ссылка на канбан-доску проекта: **[Date Wishlist Hub - Development](https://github.com/users/alexgul25/projects/2)**
+Ссылка на канбан-доску проекта: **[НамТуда - Разработка](https://github.com/users/alexgul25/projects/2)**
 
 *Общий стек технологий проекта:* `Go` `PostgreSQL` `Redis` `Kafka` `HTTP` `gRPC` `Protobuf` `Docker`
 
 ## :bulb: Идея проекта
 
-**Date Wishlist Hub** - сервис, где каждый пользователь ведёт свой вишлист мест, которые он хотел бы посетить. Пользователи могут просматривать вишлисты, чтобы выбрать идею для совместной прогулки. Есть возможность подписки на пользователя, что позволяет получать уведомления на почту о появлении новых мест в вишлисте интересующего пользователя (на данном этапе письма на почту симулируются с помощью логирования).
+**НамТуда** - сервис, где каждый пользователь ведёт свой вишлист мест, которые он хотел бы посетить. Пользователи могут просматривать вишлисты, чтобы выбрать идею для совместной прогулки. Есть возможность подписки на пользователя, что позволяет получать уведомления на почту о появлении новых мест в вишлисте интересующего пользователя (на данном этапе письма на почту симулируются с помощью логирования).
 
 ## :jigsaw: Используемые микросервисы
 
@@ -23,9 +23,9 @@
 <!-- markdownlint-disable MD033 -->
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/Date_Wishlist_hub_dark_v2.png">
-    <source media="(prefers-color-scheme: light)" srcset="docs/Date_Wishlist_hub_light_v2.png">
-    <img alt="Схема взаимодействий" src="docs/Date_Wishlist_hub_light_v2.png" width="650">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/architecture_dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/images/architecture_light.png">
+    <img alt="Схема взаимодействий" src="docs/images/architecture_light.png" width="650">
   </picture>
 </p>
 <!-- markdownlint-enable MD033 -->
@@ -41,14 +41,14 @@
 
 ***ВАЖНО!*** Репозитории должны быть клонированы **в одну и ту же папку**. Всего необходимо клонировать 5 репозиториев.
 
-- :whale: **Date Wishlist Hub Deploy** (этот репозиторий).
+- :whale: **НамТуда** (этот репозиторий).
 
 ```bash
-git clone https://github.com/alexgul25/date-wishlist-hub-deploy.git
+git clone https://github.com/alexgul25/namtuda.git
 ```
 
 ```bash
-git clone git@github.com:alexgul25/date-wishlist-hub-deploy.git
+git clone git@github.com:alexgul25/namtuda.git
 ```
 
 - :globe_with_meridians: **Gateway Service**.

@@ -4,7 +4,7 @@
 #   docker compose -f compose.dev.yaml down      # остановить (данные PostgreSQL сохранятся)
 # Пароли берутся из .env этого репозитория (те же переменные, что и для compose.yaml).
 
-name: date-wishlist-hub-dev
+name: namtuda-dev
 
 services:
   postgres:
